@@ -1,0 +1,51 @@
+///$tab Main
+// ============================================================================
+// QLIK LIFECYCLE KNOWLEDGE OS - STANDARDIZED DATA CONVERSION SNIPPETS
+// REPOSITORY: qlikLifecycle
+// STANDARDS LAYER: camelCase (Priority 1)
+// ============================================================================
+
+// --- 1. Boolean and Flag Conversions ---
+
+// Converts true/false text variants into native UI display text
+SET vToYesNo = Pick(Match(Lower($1), 'false', 'true'), 'No', 'Yes');
+
+// Maps explicit text flags to Qlik's native numerical boolean format (-1 = True, 0 = False)
+SET vToBoolean = If(Match(Lower(Trim($1)), 'true', '1', 'yes', 'y'), -1, 0);
+
+// Converts binary data bits or integers into structural UI descriptive states
+SET vBitToStatus = Pick($1 + 1, 'Inactive', 'Active');
+
+
+// --- 2. Date and Time Transformations ---
+
+// Cleans raw text string delimiters and forces a standard ISO date layout
+SET vToIsoDate = Date(Date#(PurgeChar($1, '-/ '), 'YYYYMMDD'), 'YYYY-MM-DD');
+
+// Calculates a custom 4-digit fiscal year based on a starting month offset parameter
+SET vToFiscalYear = Year(AddMonths($1, 1 - $2)); 
+
+// Translates standard Qlik timestamps into a clean Unix epoch BigInt string (seconds since 1970)
+SET vToEpochTime = Num(($1 - MakeDate(1970, 1, 1)) * 86400);
+
+
+// --- 3. Text and String Normalization ---
+
+// Dynamically strips spaces/symbols from messy columns to create programmatic camelCase keys
+SET vCleanCamelCase = Lower(Left(PurgeChar(Capitalize($1), ' _-'), 1)) & Mid(PurgeChar(Capitalize($1), ' _-'), 2);
+
+// Filters structural text placeholders like "NULL" or "N/A" into a true Qlik system Null pointer
+SET vCleanNull = If(Len(Trim(NullAsValue($1))) = 0 or Match(Lower(Trim($1)), 'null', 'na', '-'), Null(), Trim($1));
+
+
+// --- 4. Numeric and Financial Mapping ---
+
+// Protects arithmetic expressions by forcing null fields or string blanks into numeric zero
+SET vEmptyToZero = Alt(Num($1), 0);
+
+// Divides raw integer penny assets straight from APIs into normalized currency floats
+SET vCentsToCurrency = Num(Alt($1, 0) / 100, '#,##0.00');
+
+// ============================================================================
+// END OF CAPTURED SNIPPET SCHEMA
+// ============================================================================
