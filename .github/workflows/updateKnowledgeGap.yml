@@ -1,0 +1,41 @@
+name: Auto-Update Knowledge Gap Skill
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  update-markdown:
+    if: contains(github.event.issue.labels.*.name, 'knowledge-gap')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Parse Issue Form Body
+        id: parse
+        uses: peter-murray/issue-forms-body-parser@v4
+        with:
+          issue_id: ${{ github.event.issue.number }}
+          separator: '###'
+
+      - name: Append to Markdown File
+        run: |
+          FILE_PATH=".github/skills/knowledge-gap/knowledgeGap.md"
+          TITLE="${{ github.event.issue.title }}"
+          PRIORITY="${{ fromJson(steps.parse.outputs.payload).priority }}"
+          CONTEXT="${{ fromJson(steps.parse.outputs.payload).context }}"
+          QUESTIONS="${{ fromJson(steps.parse.outputs.payload).questions }}"
+          USER="@${{ github.event.issue.user.login }}"
+          
+          echo -e "\n### $TITLE\n* **Priority:** $PRIORITY\n* **Submitted By:** $USER\n* **Context:** $CONTEXT\n* **Open Questions:** $QUESTIONS\n---" >> $FILE_PATH
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@://github.com"
+          git add .github/skills/knowledge-gap/knowledgeGap.md
+          git commit -m "docs: auto-append knowledge gap from issue #${{ github.event.issue.number }}"
+          git push
