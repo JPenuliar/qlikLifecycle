@@ -1,25 +1,35 @@
-name: Validate Markdown Standards
-on:
-  pull_request:
-    branches: [ main ]
-
-jobs:
-  markdown-lint:
-    name: Lint Knowledge OS Files
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code Base
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-node: '20'
-
-      - name: Install Markdown Linter
-        run: npm install -g markdownlint-cli
-
-      - name: Execute Linter Checks
-        run: |
-          # Scans all custom skills files to ensure clear headers and scannability
-          markdownlint '.github/skills/**/*.md' --disable MD013
+name: "Reporting a Qlik Knowledge Gap"
+description: Log an active technical unknown or data transformation hurdle.
+labels: ["knowledge-gap"]
+body:
+  - type: input
+    id: title
+    attributes:
+      label: Gap Title
+      placeholder: e.g., Timezone conversion discrepancy in ERP
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      options:
+        - "🔴 High"
+        - "🟡 Medium"
+        - "🟢 Low"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context & Technical Impact
+      placeholder: Describe what is happening and why it impacts the Qlik data model.
+    validations:
+      required: true
+  - type: textarea
+    id: questions
+    attributes:
+      label: Open Questions / Action Required
+      placeholder: What architectural questions need answering?
+    validations:
+      required: true
